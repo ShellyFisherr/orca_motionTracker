@@ -1,0 +1,16 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "orca-motion-tracker"
+version = "0.1.0"
+description = "Motion tracking tools for the ORCA hand"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "orca-sim>=0.1.0",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/orca_motionTracker"]

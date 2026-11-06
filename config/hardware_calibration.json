@@ -1,0 +1,88 @@
+{
+    "version": 1,
+    "hand": "right",
+    "description": "Physical OrcaHand joint calibration mapped from normalised SenseGlove finger flexion.",
+    "flexion_points": {
+        "open": 0.0,
+        "mid": 0.5,
+        "closed": 1.0
+    },
+    "fingers": {
+        "thumb": {
+            "joints": {
+                "thumb_mcp": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                },
+                "thumb_dip": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                }
+            }
+        },
+        "index": {
+            "joints": {
+                "index_mcp": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                },
+                "index_pip": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                }
+            }
+        },
+        "middle": {
+            "joints": {
+                "middle_mcp": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                },
+                "middle_pip": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                }
+            }
+        },
+        "ring": {
+            "joints": {
+                "ring_mcp": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                },
+                "ring_pip": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                }
+            }
+        },
+        "pinky": {
+            "joints": {
+                "pinky_mcp": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                },
+                "pinky_pip": {
+                    "open_deg": null,
+                    "mid_deg": null,
+                    "closed_deg": null
+                }
+            }
+        }
+    },
+    "notes": [
+        "Angles are measured physical OrcaHand joint angles in degrees.",
+        "Do not use configured ROM limits or illustrative values as calibration measurements.",
+        "Abduction, thumb CMC, and wrist joints are intentionally excluded from this initial flexion-only mapping.",
+        "The existing hand_calibration.json remains responsible for raw SenseGlove sensor normalisation."
+    ]
+}

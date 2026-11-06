@@ -1,0 +1,73 @@
+{
+    "calibration_version": 1,
+    "timestamp": "2026-11-04T14:11:33+09:00",
+    "sample_count": 30,
+    "method": "medain",
+    "fingers": {
+        "thumb": {
+            "right_thumb_mcp": {
+                "open": -0.5266944317501452,
+                "closed": 0.5629958028920425,
+                "difference": 1.0896902346421877
+            },
+            "right_thumb_pip": {
+                "open": -0.392212250055876,
+                "closed": 0.4675414298571857,
+                "difference": 0.8597536799130617
+            },
+            "right_thumb_dip": {
+                "open": -0.39366552936241106,
+                "closed": 1.208234642644467,
+                "difference": 1.6019001720068782
+            }
+        },
+        "index": {
+            "right_index_mcp": {
+                "open": 0.05158292915779199,
+                "closed": 1.1011790699404247,
+                "difference": 1.0495961407826326
+            },
+            "right_index_pip": {
+                "open": 0.0975890593582136,
+                "closed": 1.3246142541065584,
+                "difference": 1.2270251947483448
+            }
+        },
+        "middle": {
+            "right_middle_mcp": {
+                "open": 0.03744254591878142,
+                "closed": 1.5455618012211527,
+                "difference": 1.5081192553023712
+            },
+            "right_middle_pip": {
+                "open": 0.0940929196764099,
+                "closed": 1.7541065916139853,
+                "difference": 1.6600136719375753
+            }
+        },
+        "ring": {
+            "right_ring_mcp": {
+                "open": 0.0375042790777535,
+                "closed": 1.5787406243163742,
+                "difference": 1.5412363452386206
+            },
+            "right_ring_pip": {
+                "open": 0.0941057229013601,
+                "closed": 1.8577685936087476,
+                "difference": 1.7636628707073876
+            }
+        },
+        "pinky": {
+            "right_pinky_mcp": {
+                "open": 0.06252335866687585,
+                "closed": 1.6029750875197557,
+                "difference": 1.5404517288528798
+            },
+            "right_pinky_pip": {
+                "open": 0.09769723648991746,
+                "closed": 1.773669126186694,
+                "difference": 1.6759718896967764
+            }
+        }
+    }
+}
