@@ -287,7 +287,7 @@ def main():
             row["control_dt_s"] = CONTROL_DT
             row["packet_timeout_s"] = PACKET_TIMEOUT
             row["position_error_gain_P"] = POS_ERROR_GAIN_P
-            row["position_error_gain_D"] = POS_ERROR_GAIN_Dt
+            row["position_error_gain_D"] = POS_ERROR_GAIN_D
             row["open_fraction"] = OPEN_FRACTION
             row["closed_fraction"] = CLOSED_FRACTION
 
