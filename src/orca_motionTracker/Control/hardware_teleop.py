@@ -1,27 +1,4 @@
-"""Direct SenseGlove -> physical OrcaHand teleop, bypassing orca_teleop entirely.
 
-Reads live per-finger flexion over UDP via the same FlexionUDPReceiver used
-throughout orca_motionTracker (Input/udp_receiver.py), published by
-Input/senseglove_bridge.py from the real Linux SenseGlove reader, and loads
-the calibration produced by the existing Input/calibrate_hand.py
-(config/hand_calibration.json: median open/closed plus linear scale/offset
-per finger). Drives the real OrcaHand's flexion joints directly via
-orca_core's own ROM-based fraction mapping. No gRPC, no retargeter, no
-torch -- and this process never touches senseglove_reader's raw binary
-stream at all; that happens exactly once, in the bridge.
-
-Usage (three terminals):
-    # 1) bridge: C++ reader -> UDP (leave running)
-    uv run python -m orca_motionTracker.Input.senseglove_bridge
-
-    # 2) calibrate -- writes config/hand_calibration.json. Run once, or
-    #    again whenever you want to recalibrate.
-    uv run python -m orca_motionTracker.Input.calibrate_hand
-
-    # 3) drive the real hand
-    uv run python -m orca_motionTracker.Control.hardware_teleop \\
-        ../orca_core/orca_core/models/v2/orcahand-right/config.yaml
-"""
 
 from __future__ import annotations
 
@@ -44,10 +21,6 @@ from orca_motionTracker.Input.calibrate_hand import CALIBRATION_FILE
 from orca_motionTracker.Input.udp_receiver import FlexionUDPReceiver
 from orca_motionTracker.Processing.finger_mapping import FINGERS
 
-# Which real orca_core joints each finger's flexion drives. Abduction and
-# thumb_cmc are intentionally left out, so they stay at their configured
-# neutral_position values (we only ever build fractions for the joints
-# named here).
 FINGER_JOINTS: dict[str, list[str]] = {
     "thumb": ["thumb_mcp", "thumb_dip"],
     "index": ["index_mcp", "index_pip"],
@@ -56,12 +29,6 @@ FINGER_JOINTS: dict[str, list[str]] = {
     "pinky": ["pinky_mcp", "pinky_pip"],
 }
 
-# fraction 0 ("fully open") normally maps to each joint's raw ROM minimum,
-# which for these joints overshoots well past the hand's natural resting
-# pose and looks hyper-extended ("fingers too far back"). For these joints,
-# fraction 0 instead lands on the hand's configured neutral_position; the
-# closed end (fraction 1 -> ROM max) is unchanged. The thumb's mcp/dip are
-# deliberately left out -- their ROM-minimum open end already looks right.
 OPEN_AT_NEUTRAL_JOINTS: set[str] = {
     "index_mcp", "index_pip",
     "middle_mcp", "middle_pip",
@@ -69,10 +36,6 @@ OPEN_AT_NEUTRAL_JOINTS: set[str] = {
     "pinky_mcp", "pinky_pip",
 }
 
-# Thumb abduction (the joint that swings the thumb left/right) isn't driven
-# by flexion -- it's held fixed. Its configured neutral_position sits near
-# one end of its ROM; fixing it at fraction 0 instead pins it at the
-# opposite end (the ROM minimum), which is the side it should rest on.
 THUMB_ABD_JOINT = "thumb_abd"
 THUMB_ABD_FIXED_FRACTION = 0.0
 
@@ -177,9 +140,9 @@ def main() -> int:
 
             raw_flexion = receiver.get_latest()
             if raw_flexion is None:
-                # No fresh UDP packet within --timeout seconds -- hold the
-                # last commanded pose rather than guessing.
+
                 elapsed = time.monotonic() - loop_start
+
                 if elapsed < period:
                     time.sleep(period - elapsed)
                 continue
@@ -190,8 +153,6 @@ def main() -> int:
                 for joint in FINGER_JOINTS[name]:
                     joint_fractions[joint] = fraction
 
-            # Held fixed at the opposite end of its ROM from its configured
-            # neutral -- not driven by any finger's flexion.
             joint_fractions[THUMB_ABD_JOINT] = THUMB_ABD_FIXED_FRACTION
 
             pose = fractions_to_finger_positions(hand, joint_fractions)
