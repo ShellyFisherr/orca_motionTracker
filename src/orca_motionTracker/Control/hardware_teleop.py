@@ -5,6 +5,8 @@ from __future__ import annotations
 import argparse
 import json
 import time
+import csv
+from datetime import datetime
 from pathlib import Path
 
 import numpy as np
@@ -22,7 +24,7 @@ from orca_motionTracker.Input.udp_receiver import FlexionUDPReceiver
 from orca_motionTracker.Processing.finger_mapping import FINGERS
 
 FINGER_JOINTS: dict[str, list[str]] = {
-    "thumb": ["thumb_mcp", "thumb_dip"],
+    "thumb": ["thumb_cmc", "thumb_mcp"],
     "index": ["index_mcp", "index_pip"],
     "middle": ["middle_mcp", "middle_pip"],
     "ring": ["ring_mcp", "ring_pip"],
@@ -38,6 +40,10 @@ OPEN_AT_NEUTRAL_JOINTS: set[str] = {
 
 THUMB_ABD_JOINT = "thumb_abd"
 THUMB_ABD_FIXED_FRACTION = 0.0
+
+LOG_DIR = Path.home() / "logs" / "hand_logs"
+
+JOINT_ORDER: list[str] = [joint for joints in FINGER_JOINTS.values() for joint in joints] + [THUMB_ABD_JOINT]
 
 
 def load_calibration(path: Path) -> dict[str, dict[str, float]]:
@@ -69,16 +75,7 @@ def apply_calibration(raw_flexion: dict[str, float], calibration: dict[str, dict
 
 
 def fractions_to_finger_positions(hand, fractions: dict[str, float]) -> OrcaJointPositions:
-    """Map finger flexion fractions straight to degrees for ONLY those joints.
 
-    Deliberately narrower than hand.pose_from_fractions(), which returns a
-    full pose for every configured joint (wrist, abduction, thumb_cmc
-    included) every call. Re-sending those every frame is both unnecessary
-    (nothing here drives them) and, if a joint's motor doesn't answer on the
-    bus (e.g. a disconnected/misbehaving wrist motor), can add a retry/timeout
-    delay to every single command. This only ever touches the joints named in
-    `fractions`.
-    """
     pose_dict: dict[str, float] = {}
     for joint, fraction in fractions.items():
         joint_min, joint_max = hand.config.joint_roms_dict[joint]
@@ -126,6 +123,25 @@ def main() -> int:
     hand = create_hand_from_args(args)
     receiver = FlexionUDPReceiver(host=args.host, port=args.port, timeout=args.timeout)
 
+    LOG_DIR.mkdir(parents=True, exist_ok=True)
+    timestamp_str = datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+    csv_path = LOG_DIR / f"hand_teleop_{timestamp_str}.csv"
+    csv_file = open(csv_path, "w", newline="")
+    csv_writer = csv.DictWriter(
+        csv_file,
+        fieldnames=(
+            ["timestamp", "sequence"]
+            + [f"raw_{name}" for name in FINGERS]
+            + [f"scaled_{name}" for name in FINGERS]
+            + [f"cmd_{joint}" for joint in JOINT_ORDER]
+            + [f"actual_{joint}" for joint in JOINT_ORDER]
+        ),
+    )
+
+    csv_writer.writeheader()
+    print(f"Logging to {csv_path}")
+    last_flush_time = time.monotonic()
+
     try:
         connect_hand(hand)
         hand.init_joints()
@@ -156,7 +172,29 @@ def main() -> int:
             joint_fractions[THUMB_ABD_JOINT] = THUMB_ABD_FIXED_FRACTION
 
             pose = fractions_to_finger_positions(hand, joint_fractions)
+
+            pose_dict = pose.as_dict()
+
             hand.set_joint_positions(pose, num_steps=args.num_steps)
+
+            actual_pose = hand.get_joint_position().as_dict()
+
+            row = {
+                "timestamp": time.time(),
+                "sequence": receiver.get_latest_sequence(),
+            }
+            for name in FINGERS:
+                row[f"raw_{name}"] = raw_flexion[name]
+                row[f"scaled_{name}"] = fractions[name]
+            for joint in JOINT_ORDER:
+                row[f"cmd_{joint}"] = pose_dict.get(joint)
+                row[f"actual_{joint}"] = actual_pose.get(joint)
+            
+            csv_writer.writerow(row)
+
+            if time.monotonic() - last_flush_time >= 1.0:
+                csv_file.flush()
+                last_flush_time = time.monotonic()
 
             elapsed = time.monotonic() - loop_start
             if elapsed < period:
@@ -166,6 +204,9 @@ def main() -> int:
         print("\nStopping...")
     finally:
         receiver.close()
+        if not csv_file.closed:
+            csv_file.flush()
+            csv_file.close()
         try:
             print("Returning to neutral...")
             hand.set_neutral_position()

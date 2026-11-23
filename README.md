@@ -85,7 +85,7 @@ s
 
 All commands run from the `orca_motiontTracker` root (except the `senseglove_reader`), with `uv run`. The root is accessed using
 ```bash
-cd ~/RobotHand/orcahand/motionTracker
+cd ~/RobotHand/orcahand/orca_motionTracker
 ```
 
 To start, run the senseglove reader to start the UDP package sender
